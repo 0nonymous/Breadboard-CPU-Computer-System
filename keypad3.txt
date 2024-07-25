@@ -1,0 +1,103 @@
+; keypad = port b
+
+; port initialization - set port b to half input and half output
+  lda $0f
+  sta @fef3
+
+; port initialization - set port a to full output
+  lda $ff
+  sta @fef2
+
+; main loop
+mainLoop:
+  jsr @readKeypad
+	jsr @encodeKeypad
+  sta @fef0
+  jmp @mainLoop
+
+; function 1
+; read keypad function - return value in 'a' register
+readKeypad:
+; push everything to stack
+  phx  
+  phf  
+
+; create an iterator
+  lda $01
+
+readKeypadLoop:
+  tax  
+  sta @fef1
+  sub @fef1
+  bne @readKeypadBreak
+  txa  
+  sub $08
+  beq @readKeypadBreak
+  txa  
+  shl  
+  jmp @readKeypadLoop
+
+readKeypadBreak:
+  lda @fef1
+
+; pull everything from stack
+  plf  
+  plx  
+  rsr  
+  
+; function 2
+; take keypad reading and encode it into binary - return value in 'a' register
+encodeKeypad:
+; push everything to stack
+	phx  
+	phf  
+	
+; create an iterator
+	ldx $00
+	
+encodeKeypadLoop:
+	pha  
+	sub &encodingDictionary
+	pla  
+	beq @encodeKeypadBreak
+	inx  
+	pha  
+	txa  
+	sub $10
+	pla  
+	beq @encodeKeypadBreak
+	jmp @encodeKeypadLoop
+	
+encodeKeypadBreak:
+	lda &encodingDictionary
+
+	plf  
+	plx  
+	rsr  
+ 
+ ; constants
+ ; make an array
+encodingDictionary:
+	byt $28
+	byt $11
+	byt $21
+	byt $31
+
+	byt $13
+	byt $22
+	byt $42
+	byt $14
+
+	byt $24
+	byt $44
+	byt $81
+	byt $82
+
+	byt $84
+	byt $88
+	byt $18
+	byt $48
+	
+	byt $ff
+
+  end  

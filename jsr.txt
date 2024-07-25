@@ -1,5 +1,5 @@
-; initialize computer port a
-loopp:
-  lda $0f
-  sta @fef2
+  tax  
+  jsr @002f
+  org @002f
+  rsr  
   end  

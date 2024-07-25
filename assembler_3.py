@@ -85,7 +85,6 @@ index = 0
 
 while True:
     line = source.readline()
-    print(line)
     if line == "\n":
         pass
     elif line[0] == ";":
@@ -101,7 +100,9 @@ while True:
             index += 2
         elif line[6] == "@" or line[6] == "#" or line[6] == "&":
             index += 3
+print("labels")
 print(labels)
+print("NEXT STEP__________")
 
 # parameters
 source = open(path, 'r')
@@ -182,7 +183,7 @@ while True:
                     space += 1
 
 source.close()
-print("assembler_2 mk 1.0")
+print("assembler_3 mk 1.1")
 print("compiled")
 output = "assembled_" + path
 source_2 = open(output, 'w')

@@ -11,7 +11,6 @@
 ; main loop
 mainLoop:
   jsr @readKeypad
-  jsr @encodeKeypad
   sta @fef0
   jmp @mainLoop
 
@@ -43,50 +42,4 @@ readKeypadBreak:
   plx  
   plx  
   rsr  
-
-encodeKeypad:
-  phx  
-  phf  
-
-  ldx $00 ; create an iterator
-
-encodeKeypadLoop:
-  pha  ; preserve value in a register
-  sub &encodingArray
-  pla  
-  beq @encodeKeypadBreak
-  pha  
-  inx  
-  txa  
-  sub $10
-  pla  
-  bne @encodeKeypadLoop
-
-encodeKeypadBreak:
-  txa  
-  plf  
-  plx  
-  rsr  
-
-encodingArray:
-  byt $28
-  byt $11
-  byt $21
-  byt $41
-
-  byt $12
-  byt $22
-  byt $42
-  byt $14
-
-  byt $24
-  byt $44
-  byt $81
-  byt $82
-
-  byt $84
-  byt $88
-  byt $18
-  byt $48
-
   end  
