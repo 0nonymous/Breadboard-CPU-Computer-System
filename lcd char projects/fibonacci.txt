@@ -1,0 +1,150 @@
+; print fibonacci sequence
+; addresses: fef3 ddra, fef2 ddrb
+; addresses: fef1 ra, fef0 rb
+
+; internal computer initialization
+; set ports to output
+  lda $ff
+  sta @fef2
+  sta @fef3
+
+; lcd initialization
+; initalize
+  lda $38
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; set parameters
+  lda $0f
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; increment lcd
+  lda $06 ;26
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; program initialization
+; create iterator
+  ldx $00
+  stx @0800  
+
+; create variable one - 0 is already in x register (2 bytes)
+  stx @0801
+  stx @0802
+
+; create variable two - (2 bytes)
+  stx @0804
+  ldx $01
+  stx @0803
+
+; main loop
+loopp:
+  lda @0802
+  sub $00
+  beq @byte1
+
+; second byte
+; put variable one onto the stack to pass as an arguement for the print function
+; also add 0x30 for proper character
+  add $30
+  pha  
+  jsr @print
+  pla 
+
+byte1:
+; first byte
+; put variable one onto the stack to pass as an arguement for the print function
+  lda @0801
+; also add 0x30 for proper character
+  add $30
+  pha  
+  jsr @print
+  pla  
+
+; put the ascii for comma onto the stack for the print function
+  lda $2c
+  pha  
+  jsr @print
+  pla  
+
+; add the numbers for the fibonacci sequence
+; byte 1
+  lda @0801
+  add @0803
+
+  ldx @0803
+  stx @0801
+
+; check if it overflowed
+  tax  
+  sub $0a
+  bpl @carry
+  bmi @no_carry
+
+carry:
+  tax  
+
+no_carry:
+  stx @0803
+
+; byte 2
+  lda @0802
+  adc @0804
+
+  ldx @0804
+  stx @0802
+
+  sta @0804
+
+; increment the iterator for the for loop
+  ldx @0800
+  inx  
+  stx @0800
+  txa  
+
+; check if it should go to the second row
+  sub $05
+  beq @rrow2
+  bne @nextt
+rrow2:
+  ; row 2
+  lda $c0 ;26
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; check if it is done with the loop
+nextt:
+  txa  
+  sub $0a
+  beq @donne
+  bne @loopp
+
+donne:
+  jmp @donne
+
+; character printing subroutine
+print:
+  ldx $03
+  xla  
+  sta @fef1
+  lda $03
+  sta @fef0
+  lda $00
+  sta @fef0
+  rsr  
+
+; compiler finish directive
+  end  

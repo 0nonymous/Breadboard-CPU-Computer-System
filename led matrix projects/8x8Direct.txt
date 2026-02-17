@@ -1,0 +1,360 @@
+; set ports to output
+  lda $ff
+  sta @fef2
+  sta @fef3
+
+; screen data: 0800 0801 0802 0803 0804 0805 0806 0807
+; direction register: 0808 = 0 = up; 1 = left; 2 = down; 3 = right
+; game start register: 0809
+; snake X: 080a = 0001 0000
+; snake Y; 080b = 0x03
+; gameslowdown counter: 080c
+; gameslowdown counter2: 080d
+; snake length: 080e
+; snake index register: 080f
+; 0810 : snake x history
+; 0850 : snake y history
+; 0890 : direction temp
+; 0891 : fruit X
+; 0892 : fruit Y
+; 0893 : fruit X random
+; 0894 : fruit Y random
+
+  lda $14
+  sta @080c
+  lda $10
+  sta @080a
+  sta @0810
+  lda $03
+  sta @080b
+  sta @0850
+  lda $00
+  sta @0800
+  sta @0801
+  sta @0802
+  sta @0803
+  sta @0804
+  sta @0805
+  sta @0806
+  sta @0807
+  sta @0808
+  sta @080d
+  sta @080f
+  sta @084f
+  sta @087f
+  sta @0892
+  sta @0894
+  lda $01
+  sta @0891
+  sta @0893
+  lda $03
+  sta @080e
+
+  ldx $00
+  lda $00
+clearSnakePath:
+  lda $00
+  sta &0810
+  sta &0850
+  txa  
+  add $01
+  tax  
+  sub $40
+  bne @clearSnakePath
+
+donee:
+
+; keypad = port b
+
+; port initialization - set port b to half input and half output
+  lda $0f
+  sta @fee3
+
+; port initialization - set port a to full output
+  lda $ff
+  sta @fee2
+
+mainloop:
+  jsr @readKeypad
+
+; the keypad is in the a register
+  tax  
+  sub $21  ; up
+  beq @setDirectionUp
+  txa  
+  sub $12  ; left
+  beq @setDirectionLeft
+  txa  
+  sub $42  ; right
+  beq @setDirectionRight
+  txa  
+  sub $22  ; down
+  beq @setDirectionDown
+  jmp @skipKeyPress
+
+
+setDirectionUp:
+  lda $00
+  jmp @transferDirection
+
+setDirectionLeft:
+  lda $01
+  jmp @transferDirection
+
+setDirectionDown:
+  lda $02
+  jmp @transferDirection
+
+setDirectionRight:
+  lda $03
+  jmp @transferDirection
+
+transferDirection:
+  sta @0890
+
+skipKeyPress:
+; first, lets determine if we should move
+  lda @080c
+  add $01
+  sta @080c
+
+  lda @080c
+  sub $15
+  bne @display
+  sta @080c
+
+  lda @0890
+  sub @0808
+  and $03
+  sub $02
+  beq @noDirectionChange
+  lda @0890
+  sta @0808
+
+noDirectionChange:
+  lda @0893
+  shl  
+  adc $00
+  shl  
+  adc $00
+  shl  
+  adc $00
+  shl  
+  adc $00
+  shl  
+  adc $00
+  sta @0893
+
+  lda @0894
+  add $07
+  and $07
+  sta @0894
+
+; determine which direction to move
+  lda @0808
+  sub $00
+  beq @movingUp
+  sub $01
+  beq @movingLeft
+  sub $01
+  beq @movingDown
+  jmp @movingRight
+
+movingUp:
+  ldx @080b
+  dex  
+  txa  
+  and $07
+  sta @080b
+  jmp @blittPre
+
+movingLeft:
+  lda @080a
+  shl  
+  adc $00
+  shl  
+  adc $00
+  shl  
+  adc $00
+  shl  
+  adc $00
+  shl  
+  adc $00
+  shl  
+  adc $00
+  shl  
+  adc $00
+  sta @080a
+  jmp @blittPre
+
+movingDown:
+  ldx @080b
+  inx  
+  txa  
+  and $07
+  sta @080b
+  jmp @blittPre
+
+movingRight:
+  lda @080a
+  shl  
+  adc $00
+  sta @080a
+  jmp @blittPre
+
+blittPre:
+  lda @080f
+  add $01
+  and $3f
+  sta @080f
+
+  lda @080a
+  sub @0891
+  bne @blitt
+  lda @080b
+  sub @0892
+  bne @blitt
+
+  lda @0893
+  sta @0891
+  lda @0894
+  sta @0892
+
+  ldx @080e
+  inx  
+  stx @080e
+
+
+
+
+skipMovement:
+
+blitt:
+  ldx @080f
+  lda @080a
+  sta &0810
+  lda @080b
+  sta &0850
+
+  lda @080f
+  sub @080e
+  and $3f
+  tax  
+  lda $ff
+  sub &0810
+  pha  
+  lda &0850
+  tax  
+  pla  
+  and &0800
+  sta &0800
+
+  ldx @080b
+  lda @080a
+  and &0800
+  bne @gameOver
+
+  lda @080a
+  orr &0800
+  sta &0800
+
+
+
+
+display:
+
+  jsr @displayJSR
+
+  lda @0809
+  sta @fee0
+
+
+  jmp @mainloop
+
+gameOver:
+  lda @080f
+  sub @080e
+  and $3f
+  tax  
+  lda &0810
+  pha  
+  lda &0850
+  tax  
+  pla  
+  orr &0800
+  sta &0800
+  jsr @displayJSR
+  jmp @gameOver
+
+
+displayJSR:
+  pha  
+  phx  
+  phf  
+
+  lda $fe
+  ldx $00
+loopp:
+  sta @fef0
+  add $00
+  rol  
+  adc $00
+  pha  
+
+  txa  
+  sub @0892
+  lda $00
+  bne @noFruit
+  lda @0891
+
+noFruit:
+  orr &0800
+  sta @fef1
+  inx  
+  txa  
+  sub $08
+  bne @XlessThan8
+resetX:
+  lda $00
+  sta @fef1
+  pla  
+  plf  
+  plx  
+  pla  
+  rsr  
+XlessThan8:
+  lda $00
+  sta @fef1
+  pla  
+  jmp @loopp
+
+
+; read keypad function - return value in a register
+readKeypad:
+; push everything to stack
+  phx  
+  phf  
+
+; create an iterator
+  lda $01
+
+readKeypadLoop:
+  tax  
+  sta @fee1
+  sub @fee1
+  bne @readKeypadBreak
+  txa  
+  sub $08
+  beq @readKeypadBreak
+  txa  
+  shl  
+  jmp @readKeypadLoop
+
+readKeypadBreak:
+  lda @fee1
+
+; pull everything from stack
+  plf  
+  plx  
+  rsr  
+  end  

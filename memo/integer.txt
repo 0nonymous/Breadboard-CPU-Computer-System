@@ -1,0 +1,46 @@
+addInteger:
+  pha  
+  phx  
+  phf  
+
+  lda @lowerByte1
+  add @lowerByte2
+  sta @lowerByte1
+
+  lda @upperByte1
+  adc @upperByte2
+  sta @upperByte1
+
+  plf  
+  plx  
+  pla  
+
+
+subInteger:
+  pha  
+  phx  
+  phf  
+
+  lda @lowerByte1
+  sub @lowerByte2
+  sta @lowerByte1
+
+  lda @upperByte1
+  sbc @upperByte2
+  sta @upperByte1
+
+  plf  
+  plx  
+  pla  
+
+
+  org @0800
+lowerByte1:
+  byt $00
+upperByte1:
+  byt $00
+lowerByte2:
+  byt $00
+upperByte2:
+  byt $00
+  end  

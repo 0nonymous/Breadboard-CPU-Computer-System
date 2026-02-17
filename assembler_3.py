@@ -77,7 +77,7 @@ definitions = {}
 labels = {}
 
 # label scan
-path = "keypad.txt"
+path = "whistler.txt"
 source = open(path, 'r')
 min_address = 0
 max_address = 2048
@@ -101,7 +101,9 @@ while True:
             index += 2
         elif line[6] == "@" or line[6] == "#" or line[6] == "&":
             index += 3
+print("labels")
 print(labels)
+print("NEXT STEP__________")
 
 # parameters
 source = open(path, 'r')
@@ -182,7 +184,7 @@ while True:
                     space += 1
 
 source.close()
-print("assembler_2 mk 1.0")
+print("assembler_3 mk 1.1")
 print("compiled")
 output = "assembled_" + path
 source_2 = open(output, 'w')
@@ -194,3 +196,6 @@ source_2.write("]")
 source_2.close()
 print(output)
 print(space)
+print(write_index)
+if write_index < 2048:
+    print("fits")

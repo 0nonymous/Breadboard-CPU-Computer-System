@@ -1,0 +1,485 @@
+; port initialization - set port a to half output
+  lda $0f
+  sta @fee2
+
+; port initialization - set port b to half input and half output for screen scrolling
+  lda $0f
+  sta @fee3
+
+; set it to 0 scroll for now
+  lda $00
+  sta @fee1
+
+; test output port
+; set ports to output
+  lda $ff
+  sta @fef2
+  sta @fef3
+
+; store our old keypress here
+  lda $0f
+  sta @0802
+; store our current keypress here
+  sta @0803
+
+  jsr @clearScreen
+
+; store the character at the location of cursor
+  lda #0800
+  sta @0804
+
+; put a cursor at the location
+  lda $0f
+  sta #0800
+
+; memory locations
+; till 0805 for echo
+
+; keeping whistler a separate system (not directly manipulating the screen memory or reading from there)
+; 0807, 0808, 0809, 080a, 080b for now as the 5 character space for commands
+; 0806 stores the count for how many chars it has accepted
+  lda $00
+  sta @0806
+
+; mainLoop
+mainloop:
+  jsr @readKeyboard
+
+; only print if something is actually pressed
+  lda @0803
+  sub $0f
+  beq @skipPrint
+
+; check if a unique keypress
+  lda @0803
+  sub @0802
+  beq @skipPrint
+
+; check if a special character
+; enter key
+  lda @0803
+  sub $89
+  bne @notEnter
+
+  lda @0804
+  sta #0800
+
+  jsr @carriageReturn
+  jsr @newLine
+
+; store the character at the location of cursor
+  lda #0800
+  sta @0804
+
+; put a cursor at the location
+  lda $0f
+  sta #0800
+
+  jsr @execute
+
+  jmp @skipPrint
+
+notEnter:
+
+  lda @0803
+  jsr @storeInBuffer
+  jsr @textPrint
+
+skipPrint:
+  lda @0803
+  sta @0802
+
+doneWithLoop:
+  jmp @mainloop
+
+; read keyboard function - return value in a register
+readKeyboard:
+; push everything to stack
+  phx  
+  phf  
+  pha  
+
+; create an iterator
+  lda $00
+
+readKeyboardLoop:
+  tax  
+  sta @fee0
+  lda @fee0
+  sta @0803
+  txa  
+  sub @0803
+  bne @readKeyboardBreak
+  txa  
+  sub $0f
+  beq @readKeyboardBreak
+  txa  
+  add $01
+  jmp @readKeyboardLoop
+
+readKeyboardBreak:
+
+; pull everything from stack
+  pla  
+  plf  
+  plx  
+  rsr  
+
+
+; text printing routine
+textPrint:
+; push everything onto the stack
+  phx  
+  phf  
+  pha  
+
+; actual print scene
+  sta #0800
+
+; increment the pointer to the next character space
+  lda @0800
+  add $01
+  sta @0800
+  lda @0801
+  adc $00
+  sta @0801
+
+; check if carriage return
+  lda @0800
+  and $1f
+  sub $19
+  bne @remainOnLine
+
+; do the carriage return
+  jsr @carriageReturn
+; next line
+  jsr @newLine
+
+
+
+remainOnLine:
+; store the character at the location of cursor
+  lda #0800
+  sta @0804
+
+; put a cursor at the location
+  lda $0f
+  sta #0800
+
+  pla  
+  plf  
+  plx  
+  rsr  
+
+
+; carriage return
+carriageReturn:
+  phf  
+  phx  
+  pha  
+
+; do the carriage return
+  lda @0800
+  and $e0
+  sta @0800
+
+  pla  
+  plx  
+  plf  
+  rsr  
+
+
+; clear
+clearScreen:
+  phf  
+  phx  
+  pha  
+
+; set the pointer to 0
+; initialize the pointer for the text api
+  lda $00
+  sta @0800
+  lda $fc
+  sta @0801
+
+; 25 characters in a line
+clearLoop:
+  lda $17
+  sta #0800
+
+; increment the pointer to the next character space
+  lda @0800
+  add $01
+  sta @0800
+  lda @0801
+  adc $00
+  sta @0801
+
+; check if carraige return
+  lda @0800
+  and $1f
+  sub $19
+  bne @clearLoop
+  jsr @carriageReturn
+
+; because of carraige return we have to go to the next line
+  lda @0800
+  add $20
+  sta @0800
+  lda @0801
+  adc $00
+  sta @0801
+
+; check if done
+  lda @0801
+  sub $fe
+  bne @clearLoop
+
+; initialize the pointer for the text api
+  lda $00
+  sta @0800
+  lda $fc
+  sta @0801
+
+; has reached end of screen true/false
+  lda $00
+  sta @0805
+
+  pla  
+  plx  
+  plf  
+  rsr  
+
+
+newLine:
+  pha  
+  phf  
+  phx  
+
+  lda @0800
+  add $20
+  sta @0800
+  lda @0801
+  adc $00
+  sta @0801
+
+; check if at end of screen buffer
+  lda @0801
+  sub $fe
+  bne @skipScroll
+
+; reset the buffer
+  lda $00
+  sta @0800
+  lda $fc
+  sta @0801
+
+  lda $01
+  sta @0805
+
+
+skipScroll:
+  jsr @scrollDisplay
+  plx  
+  plf  
+  pla  
+  rsr  
+
+
+scrollDisplay:
+  pha  
+  phf  
+  phx  
+
+; check if 0805 is a 1
+  lda @0805
+  sub $01
+  bne @noNeedScroll
+
+; increase the scroll offset
+  ldx @fee1
+  inx  
+  stx @fee1
+
+; clear the entire line
+; 25 characters in a line
+clearLoopScroll:
+  lda $17
+  sta #0800
+
+; increment the pointer to the next character space
+  lda @0800
+  add $01
+  sta @0800
+  lda @0801
+  adc $00
+  sta @0801
+
+; check if carraige return
+  lda @0800
+  and $1f
+  sub $19
+  bne @clearLoopScroll
+  jsr @carriageReturn
+
+noNeedScroll:
+
+  plx  
+  plf  
+  pla  
+  rsr  
+
+
+; whistler commands and subroutine functions
+storeInBuffer:
+  phf  
+  phx  
+  pha  
+
+; check if the counter at 0806 is less than 6
+; keep incrementing it tho
+  lda @0806
+  add $01
+  sta @0806
+  sub $06
+  bpl @storeInBufferExceeded
+
+; now we have to actually store the value here
+  pla  
+  pha  
+  ldx @0806
+  sta &0806
+
+storeInBufferExceeded:
+  pla  
+  plx  
+  plf  
+  rsr  
+
+execute:
+  phf  
+  phx  
+  pha  
+
+; first, let's check if the line is 5 chars long
+  lda @0806
+  sub $05
+  bne @isError
+
+is5Chars:
+; check if it is an R for read
+  lda @0807
+  sub $80
+  bne @isError
+
+; now we try reading it
+  ldx $00
+executeReadLoop:
+  lda &0808
+  phx  
+  jsr @charToHex
+  txa  
+  plx  
+  sta &0808
+  sta @fef0
+  sub $10
+  beq @isError
+  inx  
+  txa  
+  sub $04
+  beq @executeReadLoopBreak
+  bne @executeReadLoop
+
+executeReadLoopBreak:
+
+; now we want to turn it into 2 bytes from 4
+; 0808 0809 080a 080b
+; turn 080a and 080b into 1 point at 080a
+; turn 0808 and 0809 into 1 point at 080b
+  lda @0808
+  shl  
+  shl  
+  shl  
+  shl  
+  sta @0808
+  sta @fef0
+
+  jmp @executeEnd
+
+isError:
+; print E for error
+  lda $40
+  jsr @textPrint
+
+executeEnd:
+  lda @0804
+  sta #0800
+  jsr @carriageReturn
+  jsr @newLine
+
+; store the character at the location of cursor
+  lda #0800
+  sta @0804
+
+; put a cursor at the location
+  lda $0f
+  sta #0800
+
+  lda $00
+  sta @0806
+  pla  
+  plx  
+  plf  
+  rsr  
+
+
+; we need a function to convert our char type into a hex value or signal that it isn't anything convertible
+charToHex:
+  phf  
+  pha  
+
+; main body
+; create our iterator
+  ldx $00
+
+charToHexLoop:
+; we know the thing to encode is the a register
+  sub &charToHexArray
+; if it's equal, we know that x register contains the proper hex output
+  beq @charToHexBreak
+; if it's not, then we increment x
+  inx  
+  txa  
+; sub with 10
+  sub $10
+  pla  
+  pha  
+  bne @charToHexLoop
+
+charToHexBreak:
+  pla  
+  plf  
+  rsr  
+
+charToHexArray:
+  byt $1f
+  byt $1e
+  byt $2e
+  byt $4e
+
+  byt $1d
+  byt $2d
+  byt $4d
+  byt $1c
+
+  byt $2c
+  byt $4c
+  byt $11
+  byt $16
+
+  byt $42
+  byt $41
+  byt $40
+  byt $81
+
+  end  

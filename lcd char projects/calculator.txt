@@ -1,0 +1,233 @@
+; keypad = port b
+
+; port initialization - set port b to half input and half output
+  lda $0f
+  sta @fee3
+
+; port initialization - set port a to full output
+  lda $ff
+  sta @fee2
+
+; functions: initalize screen
+; functions: shift data
+; functions: send to screen
+; variables: index
+; addresses: fef3 ddra, fef2 ddrb
+; addresses: fef1 ra, fef0 rb
+
+; set ports to output
+  lda $ff
+  sta @fef2
+  sta @fef3
+
+; initalize
+  lda $38
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; set parameters
+  lda $0f
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; increment lcd
+  lda $06 ;26
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; initalize variables
+  lda $00
+  sta @lowerByte1
+  sta @lowerByte2
+  sta @upperByte1
+  sta @upperByte2
+
+; main loop
+mainLoop:
+  jsr @readKeypad
+  jsr @encodeKeypad
+  jsr @encodeSpecialCharacters
+
+; experimental: check if new key is pressed
+
+  pha  ; save a copy of 'A'
+  sub @fee0  ; check how it compares to a previous state
+  pla  ; return 'A' to its original state
+  sta @fee0
+  beq @theNextStep
+
+ifUnique:
+  pha  ; save a copy of 'A'
+  sub $10  
+  pla  
+  beq @theNextStep
+
+ifReadyToPrint:
+  add $30  ; offset to ASCII
+  phx  
+  pha  
+  jsr @print
+  pla  
+  plx  
+
+theNextStep:
+  jmp @mainLoop
+
+; read keypad function - return value in a register
+readKeypad:
+; push everything to stack
+  phx  
+  phf  
+
+; create an iterator
+  lda $01
+
+readKeypadLoop:
+  tax  
+  sta @fee1
+  sub @fee1
+  bne @readKeypadBreak
+  txa  
+  sub $08
+  beq @readKeypadBreak
+  txa  
+  shl  
+  jmp @readKeypadLoop
+
+readKeypadBreak:
+  lda @fee1
+
+; pull everything from stack
+  plx  
+  plx  
+  rsr  
+
+encodeKeypad:
+  phx  
+  phf  
+
+  ldx $00 ; create an iterator
+
+encodeKeypadLoop:
+  pha  ; preserve value in a register
+  sub &encodingArray
+  pla  
+  beq @encodeKeypadBreak
+  pha  
+  inx  
+  txa  
+  sub $10
+  pla  
+  bne @encodeKeypadLoop
+
+encodeKeypadBreak:
+  txa  
+  plf  
+  plx  
+  rsr  
+
+print:
+  ldx $03
+  xla  
+  sta @fef1
+  lda $03
+  sta @fef0
+  lda $00
+  sta @fef0 
+  rsr  
+
+encodingArray:
+  byt $28
+  byt $11
+  byt $21
+  byt $41
+
+  byt $12
+  byt $22
+  byt $42
+  byt $14
+
+  byt $24
+  byt $44
+  byt $81
+  byt $82
+
+  byt $84
+  byt $88
+  byt $18
+  byt $48
+
+encodeSpecialCharacters:
+  phx  
+  phf  
+
+; A=+ B=- C=x D=/ E='='
+  pha  
+  sub $0a
+  tax  
+  pla  
+  bmi @encodeSpecialCharactersBreak
+  lda &encodeSpecialCharactersArray
+
+encodeSpecialCharactersBreak:
+  plf  
+  plx  
+  rsr  
+
+encodeSpecialCharactersArray:
+  byt $2b
+  byt $2d
+  byt $2a
+  byt $2f
+  byt $3d
+  byt $2e
+
+addInteger:
+  pha  
+  phx  
+  phf  
+
+  lda @lowerByte1
+  add @lowerByte2
+  sta @lowerByte1
+
+  lda @upperByte1
+  adc @upperByte2
+  sta @upperByte1
+
+  plf  
+  plx  
+  pla  
+
+subInteger:
+  pha  
+  phx  
+  phf  
+
+  lda @lowerByte1
+  sub @lowerByte2
+  sta @lowerByte1
+
+  lda @upperByte1
+  sbc @upperByte2
+  sta @upperByte1
+
+  plf  
+  plx  
+  pla  
+
+  org @0800
+lowerByte1:
+upperByte1:
+lowerByte2:
+upperByte2:
+  end  

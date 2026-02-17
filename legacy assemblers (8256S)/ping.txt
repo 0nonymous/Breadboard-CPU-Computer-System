@@ -1,0 +1,60 @@
+; 18 bytes initialize - run once
+lda #00 ; 00, 01
+sta @f5 ; 02, 03 - score variable
+sta @f4 ; 04, 05 - horizontal speed (0 = no horizontal movement, 1 = right movement, ff = left movement)
+lda #01 ; 06, 07
+sta @f3 ; 08, 09 - vertical speed (1 = down, ff = up)
+lda #03 ; 0a, 0b
+sta @f2 ; 0c, 0d - ball x
+sta @f1 ; 0e, 0f - ball y
+sta @f0 ; 10, 11 - paddle x (center coordinates)
+; move paddle
+; check if right key is pressed
+lda @fe ; 12, 13
+sub #01 ; 14, 15
+beq @20 ; 16, 17
+; check if left key is pressed
+lda @fe ; 18, 19
+sub #02 ; 1a, 1b
+beq @2e ; 1c, 1d
+; skip step if nothing is pressed
+jmp @3a ; 1e, 1f
+; if right key is pressed
+; check if it excedes boundary
+lda @f0 ; 20, 21
+sub #06 ; 22, 23
+beq @3a ; 24, 25 - skip if equal
+; increment coordinates of paddle
+lda @f0 ; 26, 27
+add #01 ; 28, 29
+sta @f0 ; 2a, 2b
+jmp @3a ; 2c, 2d - break when done
+; if left key is pressed
+; check if it excedes boundary
+lda @f0 ; 2e, 2f
+sub #01 ; 30, 31
+beq @3a ; 32, 33 - skip if equal
+; decrement coordinates of paddle
+lda @f0 ; 34, 35
+sub #01 ; 36, 37
+sta @f0 ; 38, 39
+; ball control
+; pre movement
+; check if hits top or bottm
+lda @f1 ; 3a, 3b - jump to skip or when done
+sub #00 ; 3c, 3d
+beq @48 ; 3e, 3f - ball bounces of the top
+lda @f1 ; 40, 41
+sub #07 ; 42, 43
+beq @   ; 44, 45 - ball is dropped
+jmp @   ; 46, 47 - jump if not applicable
+; bounce of top
+
+
+
+
+
+
+
+
+end  

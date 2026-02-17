@@ -1,0 +1,22 @@
+lda #14 ; 00, 01      initializes that pointer
+sta @05 ; 02, 03      loads the initialized value into pointer
+lda @14 ; 04, 05      loads data from the file
+sta @ff ; 06, 07      put it into lcd
+lda @05 ; 08, 09      loads the pointer value
+add #01 ; 0a, 0b      increments the value
+sta @05 ; 0c, 0d      loads it back
+sub #2f- ; 0e, 0f      subtracts with a value
+beq @10 ; 10, 11      jumps to itself because it is done
+jmp @04 ; 12, 13      prints the next letter
+res #E8 ; 1 byte 14   h
+res #E5 ; 1 byte 15   e
+res #EC ; 1 byte 16   l
+res #EC ; 1 byte 17   l
+res #EF ; 1 byte 18   o
+res #A0 ; 1 byte 19
+res #F7 ; 1 byte 1a   w
+res #EF ; 1 byte 1b   o
+res #F2 ; 1 byte 1c   r
+res #EC ; 1 byte 1d   l
+res #E4 ; 1 byte 2e   d
+end    

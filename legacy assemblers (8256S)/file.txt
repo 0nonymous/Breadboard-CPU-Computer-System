@@ -1,0 +1,25 @@
+lda @16 ; 2 byte 00
+sta @FF ; 2 byte 02
+lda #00 ; 2 byte 04
+sta @FF ; 2 byte 06
+lda @01 ; 2 byte 08
+sub #20 ; 2 byte 0A
+beq @0C ; 2 byte 0C
+lda @01 ; 2 byte 0e
+add #01 ; 2 byte 10
+sta @01 ; 2 byte 12
+jmp @00 ; 2 byte 14
+res #E8 ; 1 byte 16
+res #E5 ; 1 byte 17
+res #EC ; 1 byte 18
+res #EC ; 1 byte 19
+res #EF ; 1 byte 1A
+res #A0 ; 1 byte 1B
+res #F7 ; 1 byte 1C
+res #EF ; 1 byte 1D
+res #F2 ; 1 byte 1E
+res #EC ; 1 byte 1F
+res #E4 ; 1 byte 20
+end  
+
+"hello world" program Feather-1 (8256S)

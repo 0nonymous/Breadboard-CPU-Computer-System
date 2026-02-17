@@ -1,0 +1,25 @@
+; ascii characters
+  .org @$f0
+  .byte #$68
+  .byte #$65
+  .byte #$6c
+  .byte #$6c
+  .byte #$6f
+  .byte #$2c
+  .byte #$20
+  .byte #$77
+  .byte #$6f
+  .byte #$72
+  .byte #$6c
+  .byte #$64
+  .byte #$21
+; character printing loop
+  counter = #$fd
+  .org @$00
+  lda #$f0
+  sta @$05
+loop:
+  lda @$f0
+  
+
+  end

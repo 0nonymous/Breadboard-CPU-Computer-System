@@ -1,0 +1,45 @@
+; keypad = port b
+
+; port initialization - set port b to half input and half output
+  lda $0f
+  sta @fef3
+
+; port initialization - set port a to full output
+  lda $ff
+  sta @fef2
+
+; main loop
+mainLoop:
+  jsr @readKeypad
+  sta @fef0
+  jmp @mainLoop
+
+; read keypad function - return value in a register
+readKeypad:
+; push everything to stack
+  phx  
+  phf  
+
+; create an iterator
+  lda $01
+
+readKeypadLoop:
+  tax  
+  sta @fef1
+  sub @fef1
+  bne @readKeypadBreak
+  txa  
+  sub $08
+  beq @readKeypadBreak
+  txa  
+  shl  
+  jmp @readKeypadLoop
+
+readKeypadBreak:
+  lda @fef1
+
+; pull everything from stack
+  plx  
+  plx  
+  rsr  
+  end  

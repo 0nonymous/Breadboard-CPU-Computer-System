@@ -1,0 +1,51 @@
+; signed integer (2 bytes)
+; lower address byte for lower bits
+; higher address byte for higher bits
+; store all variables on the 0800 page
+
+
+; initialize integer (0800, 0801)
+  lda $00
+  sta @0800
+  sta @0801
+
+; initialize integer (0802, 0803)
+  lda $00
+  sta @0802
+  sta @0803
+
+; ability to separate into digits (for printing)
+
+
+; ability to add
+; address of lower "accumulator", followed by address of lower "b"
+INTEGER_ADD:
+  pha  
+  phx  
+  phf  
+
+  ldx $05
+  xlx  
+  lda &0800
+  ldx $04
+  xlx  
+  add &0800
+  ldx $05
+  xlx  
+  sta &0800
+
+  plf  
+  plx  
+  pla  
+
+
+; ability to subtract
+
+
+; ability to multiply
+
+
+; ability to divide
+
+
+  end  

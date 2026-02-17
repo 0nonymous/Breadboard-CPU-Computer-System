@@ -1,0 +1,59 @@
+; initialize the pointer
+  lda $00
+  sta @0800
+  lda $fc
+  sta @0801
+
+mainLoop:
+; actually store the value
+  lda $ff
+  sta #0800
+
+; increment the pointer
+  lda @0800
+  add $01
+  sta @0800
+
+; check if end of line
+  lda @0800
+  and $1f
+  sub $19
+  bne @mainLoop
+
+; it is end of line
+; reset the line
+  lda @0800
+  and $e0
+; increment the column
+  add $20
+  sta @0800
+  lda @0801
+  adc $00
+  sta @0801
+
+; check if the end of columns
+  sub $fe
+  bne @mainLoop
+  lda $fc
+  sta @0801
+  lda @0800
+  and $1f
+  sta @0800
+  jmp @unique
+
+unique:
+  lda $00
+  sta @fc00
+  lda $11
+  sta @fc01
+  lda $09
+  sta @fc02
+  lda $14
+  sta @fc03
+  lda $0d
+  sta @fc04
+
+donne:
+  jmp @donne
+
+  end  

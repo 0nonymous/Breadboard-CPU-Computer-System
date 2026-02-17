@@ -1,0 +1,6 @@
+data type for 6 digit calculator
+eleven bcd digits
+000000.
+0.00000
+0000000000
+ten states for decimal point

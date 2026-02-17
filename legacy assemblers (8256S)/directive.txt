@@ -1,0 +1,10 @@
+  jmp @label1
+  sta @PORTA
+label1:
+  .org @$f0
+  .byte #$ff
+  PORTA = @$00
+  .byte #$ff
+  .org @$f0
+  player_x = @$ff
+  end

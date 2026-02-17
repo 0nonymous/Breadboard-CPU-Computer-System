@@ -1,0 +1,170 @@
+; keypad = port b
+
+; port initialization - set port b to half input and half output
+  lda $0f
+  sta @fef3
+
+; port initialization - set port a to full output
+  lda $ff
+  sta @fef2
+
+; main loop
+mainLoop:
+  jsr @readKeypad
+  jsr @encodeReading
+  sta @fef0
+  jmp @mainLoop
+
+; read keypad function - return value in a register
+readKeypad:
+; push everything to stack
+  phx  
+  phf  
+
+; create an iterator
+  lda $01
+
+readKeypadLoop:
+  tax  
+  sta @fef1
+  sub @fef1
+  bne @readKeypadBreak
+  txa  
+  sub $08
+  beq @readKeypadBreak
+  txa  
+  shl  
+  jmp @readKeypadLoop
+
+readKeypadBreak:
+  lda @fef1
+
+; pull everything from stack
+  plf  
+  plx  
+  rsr  
+
+; encode keypad coordinates into binary
+encodeReading:
+  phx  
+  phf  
+
+  tax  ; save a copy of the reading into the x register
+; switch statement
+statement0:
+  sub $11
+  bne @statement1
+  ldx $01
+  jmp @switchBreak
+
+statement1:
+  txa  
+  sub $21
+  bne @statement2
+  ldx $02
+  jmp @switchBreak
+
+statement2:
+  txa  
+  sub $41
+  bne @statement3
+  ldx $03
+  jmp @switchBreak
+
+statement3:
+  txa  
+  sub $81
+  bne @statement4
+  ldx $0a
+  jmp @switchBreak
+
+statement4:
+  txa  
+  sub $12
+  bne @statement5
+  ldx $04
+  jmp @switchBreak
+
+statement5:
+  txa  
+  sub $22
+  bne @statement6
+  ldx $05
+  jmp @switchBreak
+
+statement6:
+  txa  
+  sub $42
+  bne @statement7
+  ldx $06
+  jmp @switchBreak
+
+statement7:
+  txa  
+  sub $82
+  bne @statement8
+  ldx $0b
+  jmp @switchBreak
+
+statement8:
+  txa  
+  sub $14
+  bne @statement9
+  ldx $07
+  jmp @switchBreak
+
+statement9:
+  txa  
+  sub $24
+  bne @statement10
+  ldx $08
+  jmp @switchBreak
+
+statement10:
+  txa  
+  sub $44
+  bne @statement11
+  ldx $09
+  jmp @switchBreak
+
+statement11:
+  txa  
+  sub $84
+  bne @statement12
+  ldx $0c
+  jmp @switchBreak
+
+statement12:
+  txa  
+  sub $18
+  bne @statement13
+  ldx $0e
+  jmp @switchBreak
+
+statement13:
+  txa  
+  sub $28
+  bne @statement14
+  ldx $00
+  jmp @switchBreak
+
+statement14:
+  txa  
+  sub $48
+  bne @statement15
+  ldx $0f
+  jmp @switchBreak
+
+statement15:
+  txa  
+  sub $88
+  bne @switchBreak
+  ldx $0d
+  jmp @switchBreak
+
+switchBreak:
+  txa  
+  plf  
+  plx  
+  rsr  
+  end  

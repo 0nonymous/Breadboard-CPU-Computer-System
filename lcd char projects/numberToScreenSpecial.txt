@@ -1,0 +1,251 @@
+
+; keypad = port b
+
+; port initialization - set port b to half input and half output
+  lda $0f
+  sta @fee3
+
+; port initialization - set port a to full output
+  lda $ff
+  sta @fee2
+
+; functions: initalize screen
+; functions: shift data
+; functions: send to screen
+; variables: index
+; addresses: fef3 ddra, fef2 ddrb 
+; addresses: fef1 ra, fef0 rb
+
+; create some space: 0801, 0802, 0803, 0804 msb to lsb for digit 1; 0806, 0807, 0808, 0809
+; pointer 0800 val of 01
+  lda $00
+  sta @0800
+
+; set ports to output
+  lda $ff
+  sta @fef2
+  sta @fef3
+
+; initalize
+  lda $38
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; set parameters
+  lda $0f
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; increment lcd
+  lda $06 ;26
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; main loop
+mainLoop:
+  jsr @readKeypad
+  jsr @encodeKeypad
+
+; experimental: check if new key is pressed
+  pha  ; save a copy of 'A'
+  sub @fee0  ; check how it compares to a previous state
+  pla  ; return 'A' to its original state
+  sta @fee0
+  beq @theTrueNextStep
+
+ifUnique:
+  pha  
+  sub $10
+  pla  
+  beq @theTrueNextStep
+
+ifReadyToPrint:
+; save an incremenet
+  ldx @0800
+  sta &0801
+  inx  
+  stx @0800
+  jsr @printer
+
+theNextStep:
+  lda @0800
+  tax  
+  sub $04
+  beq @recall
+  txa  
+  sub $09
+  beq @operate
+  jmp @theTrueNextStep
+
+recall:
+  ldx @0800
+  inx  
+  stx @0800
+  lda $fb
+  jsr @printer
+  jmp @theTrueNextStep
+
+operate:
+  ldx @0800
+  inx  
+  stx @0800
+  lda $0d
+  jsr @printer
+  add $00
+
+  ldx $03
+  jsr @addDigit
+  dex  
+  jsr @addDigit
+  dex  
+  jsr @addDigit
+  dex  
+  jsr @addDigit
+
+
+  lda @0801
+  jsr @printer
+  lda @0802
+  jsr @printer
+  lda @0803
+  jsr @printer
+  lda @0804
+  jsr @printer
+
+theTrueNextStep:
+  jmp @mainLoop
+
+printer:
+  pha  
+  add $30  ; offset to ASCII
+  phx  
+  pha  
+  jsr @print
+  pla  
+  plx  
+  pla  
+  rsr  
+
+; read keypad function - return value in a register
+readKeypad:
+; push everything to stack
+  phx  
+  phf  
+
+; create an iterator
+  lda $01
+
+readKeypadLoop:
+  tax  
+  sta @fee1
+  sub @fee1
+  bne @readKeypadBreak
+  txa  
+  sub $08
+  beq @readKeypadBreak
+  txa  
+  shl  
+  jmp @readKeypadLoop
+
+readKeypadBreak:
+  lda @fee1
+
+; pull everything from stack
+  plf  
+  plx  
+  rsr  
+
+encodeKeypad:
+  phx  
+  phf  
+
+  ldx $00 ; create an iterator
+
+encodeKeypadLoop:
+  pha  ; preserve value in a register
+  sub &encodingArray
+  pla  
+  beq @encodeKeypadBreak
+  pha  
+  inx  
+  txa  
+  sub $10
+  pla  
+  bne @encodeKeypadLoop
+
+encodeKeypadBreak:
+  txa  
+  plf  
+  plx  
+  rsr  
+
+print:
+  ldx $03
+  xla  
+  sta @fef1
+  lda $03
+  sta @fef0
+  lda $00
+  sta @fef0 
+  rsr  
+
+addDigit:
+; take number from 0801 + x where x is preserved
+; use flags
+  pha  
+
+  lda &0801
+  adc &0806
+
+  sub $0a
+  bpl @greaterThan9
+  jmp @lessThan10
+
+greaterThan9:
+  sta &0801
+  lda $ff
+  add $01
+  jmp @addDigitConverge
+
+lessThan10:
+  add $0a
+  sta &0801
+  add $00
+  jmp @addDigitConverge
+
+addDigitConverge:
+  pla  
+  rsr  
+
+
+encodingArray:
+  byt $28
+  byt $11
+  byt $21
+  byt $41
+
+  byt $12
+  byt $22
+  byt $42
+  byt $14
+
+  byt $24
+  byt $44
+  byt $81
+  byt $82
+
+  byt $84
+  byt $88
+  byt $18
+  byt $48
+
+  end  

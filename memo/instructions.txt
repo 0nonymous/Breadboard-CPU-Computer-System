@@ -1,0 +1,59 @@
+Addressing modes
+1. Immediate
+2. Absolute Addressing
+3. Indirect Addressing
+4. Offset Absolute Addressing
+
+63 instructions
+
+A Register (4)
+1. all addressing modes
+
+X Register (8)
+1. all addressing modes
+2. increment
+3. decrement
+4. transfer to A
+5. transfer A to X
+
+ALU (28)
+1. add (4)
+2. subtract (4)
+3. add wc (4)
+4. subtract wc (4)
+5. and (4)
+6. or (4)
+7. shl (1)
+8. shr (1)
+9. rol (1)
+10. ror (1)
+
+Store (6)
+1. store A (3)
+2. store X (3)
+
+Stack (10)
+1. pop A
+2. push A
+3. pop X
+4. push X
+5. pop F
+6. push F
+7. offset A
+8. offset X
+9. jump subroutine
+10. return subroutine
+
+Flags (3)
+1. clear Flags
+2. set mask
+3. clear mask
+
+Conditionals (7)
+1. Sign
+2. CARRY
+3. Zero
+4. UNCONDITIONAL
+5. Not Sign
+6. Not CARRY
+7. Not Zero

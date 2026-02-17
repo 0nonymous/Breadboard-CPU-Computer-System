@@ -1,4 +1,0 @@
-  lda $ff
-  org @0011
-  tax  ; test
-  end  

@@ -1,0 +1,79 @@
+; blank, blank, blank, blank, blank, CS, CLK, DIN
+; making a library for the MAX7219 led matrix controller
+; addresses: fef3 ddra, fef2 ddrb
+; addresses: fef1 ra, fef0 rb
+
+; internal computer initialization
+; set ports to output
+  lda $ff
+  sta @fef3  ; only use port a
+
+  lda $20  ; keep all pins low except CS
+  sta @fef1
+
+; main
+  lda $ff
+  pha  
+  pha  
+  jsr @SERIAL_DATA
+donne:
+  jmp @donne
+
+; library functions
+SERIAL_DATA:
+; expect operand in a register
+; create an iterator
+  phx  
+  pha  
+  ldx $00
+
+SERIAL_DATA_LOOP:
+; get  bit
+  pha  
+  and $80
+
+; send it to the port
+  sta @fef1
+
+; turn on the clock
+  add $40
+  sta @fef1
+
+; turn off the clock
+  sub $40
+  sta @fef1
+
+; shift
+  pla  
+  shl  
+  pha  
+
+; increment
+  inx  
+  txa  
+  sub $08
+  pla  
+  bne @SERIAL_DATA_LOOP
+
+  pla  
+  plx  
+  rsr  
+
+SEND_DATA:
+  phx  
+  pha  
+
+  ldx $03
+  xla  
+  jsr @SERIAL_DATA
+  inx  
+  xla  
+  jsr @SERIAL_DATA
+  lda $20
+  sta @fef1
+
+  pla  
+  plx  
+  rsr  
+
+  end  

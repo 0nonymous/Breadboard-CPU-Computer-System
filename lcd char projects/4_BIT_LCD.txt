@@ -1,0 +1,98 @@
+; port a : NC, NC, enable, register select, D7, D6, D5, D4
+
+; internal computer initialization
+; set ports to output
+  lda $7f
+  sta @fef3  ; only use port a
+
+; external lcd initialization
+; function set; register select = 0 & 0010; sets the display to 4 bit mode
+  lda $02 ; 00 000010
+  sta @fef1
+  ldx $22 ; 00 100010
+  stx @fef1
+  sta @fef1
+
+; function set; register select = 0 & 0010 & 0000; sets the display to 4 bit mode 1 line
+  stx @fef1
+  sta @fef1
+
+  lda $00 ; 00 000000
+  sta @fef1
+  ldx $20 ; 00 100000
+  stx @fef1
+  sta @fef1
+
+; display on/off control; register select = 0 & 0000 & 1110; turns on display & cursor
+  stx @fef1
+  sta @fef1
+
+  lda $0e ; 00 001110
+  sta @fef1
+  ldx $2e ; 00 101110
+  stx @fef1
+  sta @fef1
+
+; set mode; register select = 0 & 0000 & 0110; increments display address
+  lda $00 ; 00 000000
+  sta @fef1
+  ldx $20 ; 00 100000
+  stx @fef1
+  sta @fef1
+
+  lda $06 ; 00 000110
+  sta @fef1
+  ldx $26 ; 00 100110
+  stx @fef1
+  sta @fef1
+
+; main
+donne:
+  jmp @donne
+
+; send character
+sendNumber:
+  pha  
+  phx  
+  phf  
+
+; offset number for ascii
+  ldx $03
+  xla  
+  add $30
+  pha  
+
+; shift number for first 4 bits
+  shr  
+  shr  
+  shr  
+  shr  
+
+; turn on the r/s pin
+  orr $10
+  tax  
+  orr $20
+
+; send to port
+  stx @fef1
+  sta @fef1
+  stx @fef1
+
+; second nibble
+  pla  
+  and $0f
+  orr $10
+  tax  
+  orr $20
+
+; send to port
+  stx @fef1
+  sta @fef1
+  stx @fef1
+
+  plf  
+  plx  
+  pla  
+  rsr  
+
+  end  

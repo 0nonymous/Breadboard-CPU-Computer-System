@@ -1,0 +1,153 @@
+; port initialization - set port b to half input and half output for screen scrolling
+  lda $0f
+  sta @fee3
+
+; set it to 0 scroll for now
+  lda $00
+  sta @fee1
+
+; initialize the pointer for the text api
+  lda $00
+  sta @0800
+  lda $fc
+  sta @0801
+
+; create a spot for the flags for the text api
+  lda $00
+  sta @0802
+
+mainLoop:
+  jsr @textClear
+
+arjunLoop:
+  lda $00
+  pha  
+  jsr @textPrint
+  pla  
+  lda $11
+  pha  
+  jsr @textPrint
+  pla  
+  lda $09
+  pha  
+  jsr @textPrint
+  pla  
+  lda $14
+  pha  
+  jsr @textPrint
+  pla  
+  lda $0d
+  pha  
+  jsr @textPrint
+  pla  
+  jmp @arjunLoop
+
+
+textClear:
+  pha  
+  phf  
+  phx  
+
+; set the pointer to the top of the screen
+  lda $00
+  sta @0800
+  lda $fc
+  sta @0801
+  lda $ff
+  pha  
+
+textClearLoop:
+  jsr @textPrint
+  lda @0802
+  and $01
+  beq @textClearLoop
+; set it to 0 scroll for now
+  lda $00
+  sta @fee1
+  pla  
+  plx  
+  plf  
+  pla  
+  rsr  
+
+
+
+textPrint:
+  pha  
+  phx  
+  phf  
+; pull the text value from the stack
+  ldx $06
+  xla  
+  sta #0800
+
+; increment the pointer
+  lda @0800
+  add $01
+  sta @0800
+
+; check if end of line
+  lda @0800
+  and $1f
+  sub $19
+  bne @textPrintFinish
+
+; it is end of line
+; set the new "line" flag
+  lda @0802
+  orr $02
+  sta @0802
+
+; reset the line
+  lda @0800
+  and $e0
+; increment the column
+  add $20
+  sta @0800
+  lda @0801
+  adc $00
+  sta @0801
+  pha  
+
+; check if scroll
+  lda @0802
+  and $01
+  pla  
+  beq @noScroll
+
+; scroll
+  pha  
+  lda @fee1
+  sub $01
+  sta @fee1
+  pla  
+
+noScroll:
+
+
+; check if the end of columns
+  sub $fe
+  bne @textPrintFinish
+  lda $fc
+  sta @0801
+  lda @0800
+  and $1f
+  sta @0800
+
+; set the new "window" flag
+  lda @0802
+  orr $01
+  sta @0802
+
+textPrintFinish:
+  plf  
+  plx  
+  pla  
+  rsr  
+
+
+
+donne:
+  jmp @donne
+
+  end  

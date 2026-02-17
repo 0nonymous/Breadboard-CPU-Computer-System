@@ -1,4 +1,0 @@
-$ = immediate
-@ = absolute
-# = indirect
-& = offset

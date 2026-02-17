@@ -1,0 +1,9 @@
+  jmp @0501
+  org @0501
+sigmaSkibidi:
+  jsr @060a
+  jmp @0501
+  org @060a
+sigmaBoy:
+  rsr  
+  end  

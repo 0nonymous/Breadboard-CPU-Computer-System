@@ -1,0 +1,68 @@
+; port b = 4-bit lcd character display
+; port b initialization = first 6-bits are output, d4,d5,d6,d7,rs,e
+  lda $ff
+  sta @fef2
+
+; lcd initialization
+; step 1: set the display to 4-bit mode
+  lda $02  ; only turn on d4
+  sta @fef0
+  ldx $22  ; same as above but now turn on enable
+  stx @fef0
+  sta @fef0
+
+; step 2:1
+  stx @fef0
+  sta @fef0
+
+; step 2:2
+  stx @fef0
+  sta @fef0
+
+; step 3:1
+  lda $00
+  sta @fef0
+  ldx $20
+  stx @fef0
+  sta @fef0
+
+; step 3:2
+  lda $0e
+  sta @fef0
+  ldx $2e
+  stx @fef0
+  sta @fef0
+
+; step 4:1
+  lda $00
+  sta @fef0
+  ldx $20
+  stx @fef0
+  sta @fef0
+
+; step 4:2
+  lda $06
+  sta @fef0
+  ldx $26
+  stx @fef0
+  sta @fef0
+; initialization complete
+
+; test character
+; step 5:1
+  lda $14
+  sta @fef0
+  ldx $34
+  stx @fef0
+  sta @fef0
+
+; step 5:2
+  lda $18
+  sta @fef0
+  ldx $38
+  stx @fef0
+  sta @fef0
+
+loopp:
+  jmp @loopp
+  end  
