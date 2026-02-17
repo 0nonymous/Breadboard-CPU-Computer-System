@@ -1,0 +1,80 @@
+; ping
+; initialize - run once
+; initialize ball buffer
+lda #00 ; 00, 01
+sta @ee ; 02, 03
+sta @ef ; 04, 05
+sta @f0 ; 06, 07
+sta @f2 ; 08, 09
+sta @f3 ; 0a, 0b
+sta @f4 ; 0c, 0d
+sta @f5 ; 0e, 0f
+lda #10 ; 10, 11
+sta @f1 ; 12, 13
+; initialize paddle buffer
+lda #38 ; 14, 15
+sta @ed ; 16, 17
+; initialize other variables
+lda #03 ; 18, 19
+sta @ec ; 1a, 1b store ball x-cor
+lda #03 ; 1c, 1d
+sta @eb ; 1e, 1f store ball y-cor
+lda #00 ; 20, 21
+sta @ea ; 22, 23 store ball horizontal speed
+lda #ff ; 24, 25
+sta @e9 ; 26, 27 store ball vertical speed
+lda #00 ; 28, 29
+sta @e8 ; 2a, 2b store score
+lda #03 ; 2c, 2d
+sta @e7 ; 2e, 2f store paddle x-cor
+; display logic initialize
+lda #f6 ; 30, 31      initializes that pointer
+sta @35 ; 32, 33      loads the initialized value into pointer
+; display logic main
+lda @f6 ; 34, 35      loads data from the file
+sta @ff ; 36, 37      put it into lcd
+lda @35 ; 38, 39      loads the pointer value
+add #01 ; 3a, 3b      increments the value
+sta @35 ; 3c, 3d      loads it back
+sub #fe ; 3e, 3f      subtracts with a value
+beq @44 ; 40, 41      jumps to next because it is done
+jmp @34 ; 42, 43      prints the next letter
+; move paddle logic
+; check if right
+lda @fe ; 44, 45
+sub #01 ; 46, 47
+beq @3a; 48, 49
+; check if left
+lda @fe ; 4a, 4b
+sub #02 ; 4c, 4d
+beq @53 ; 4e, 4f
+; do nothing
+jmp @64 ; 50, 51
+; check if at right edge
+lda @ed ; 52, 53
+sub #07 ; 54, 55
+beq @64 ; 56, 57
+lda @ed ; 58, 59
+rol     ; 5a
+rol     ; 5b
+rol     ; 5c
+rol     ; 5d
+rol     ; 5e
+rol     ; 5f
+rol     ; 60
+sta @ed ; 61, 62
+lda @e7 ; 63, 64
+add #01 ; 65, 66
+sta @e7 ; 67, 68
+jmp @64 ; 69, 6a
+; move left
+lda @ed ; 6b, 6c
+sub #e0 ; 6d, 6e
+beq @58 ; 6f, 70
+lda @ed ; 71, 72
+rol     ; 73
+sta @ed ; 74, 75
+lda @e7 ; 76, 77
+sub #01 ; 78, 79
+sta @e7 ; 7a, 7b
+end  

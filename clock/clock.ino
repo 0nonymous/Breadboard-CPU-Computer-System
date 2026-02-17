@@ -1,5 +1,5 @@
 const int CLOCK_PIN = 8;
-const int DELAY_TIME = 1;
+const int DELAY_TIME = 100;
 String received_char;
 
 void setup() {

@@ -1,0 +1,109 @@
+; port b = 4-bit lcd character display
+; port b initialization = first 6-bits are output, d4,d5,d6,d7,rs,e
+  lda $ff
+  sta @fef2
+
+; lcd initialization
+; step one: function set 8-bit mode
+  lda $03
+  ldx $23
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+; step two: repeat function set 8-bit mode
+  stx @fef0
+  sta @fef0
+
+; step three: repeat function set 8-bit mode
+  stx @fef0
+  sta @fef0
+
+; step four: set to 4-bit mode
+  lda $02
+  ldx $22
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+; step five: set 4-bit mode, 2 lines (1)
+  stx @fef0
+  sta @fef0
+
+; step six: set 4-bit mode, 2 lines (2)
+  lda $08
+  ldx $28
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+; step seven: display on (1)
+  lda $00
+  ldx $20
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+; step eight: display on (2)
+  lda $0c
+  ldx $2c
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+; step nine: clear display (1)
+  lda $00
+  ldx $20
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+; step ten: clear display (2)
+  lda $02
+  ldx $22
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+; step eleven: entry mode set (1)
+  lda $00
+  ldx $20
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+; step twelve: entry mode set (2)
+  lda $06
+  ldx $26
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+; step thirteen: send 'H' (1)
+  lda $14
+  ldx $34
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+; step fourteen: send 'H' (2)
+  lda $18
+  ldx $38
+
+  sta @fef0
+  stx @fef0
+  sta @fef0
+
+loopp:
+  jmp @loopp
+  end  

@@ -1,0 +1,37 @@
+; print "Arjun"
+; for loop 0, 5
+; functions: initalize screen
+; functions: shift data
+; functions: send to screen
+; variables: index
+; addresses: fef3 ddra, fef2 ddrb
+; addresses: fef1 ra, fef0 rb
+
+; set ports to output
+  lda $ff
+  sta @fef2
+  sta @fef3
+
+; initalize
+  lda $38
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; set parameters
+  lda $0f
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0
+
+; increment lcd
+  lda $06 ;26
+  sta @fef1
+  lda $02
+  sta @fef0
+  lda $00
+  sta @fef0

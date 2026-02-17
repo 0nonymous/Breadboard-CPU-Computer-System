@@ -1,0 +1,7 @@
+add #01 ; 2 byte 00, 01
+sta @06; 2 byte 02, 03
+jmp @00 ; 2 byte 04, 05
+res #00 ; 1 byte, 06
+end
+simple counter program
+stores counter variable at address 06
