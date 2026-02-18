@@ -35,10 +35,10 @@ The assembler uses suffix symbols to indicate addressing modes:
 
 Example:
 ```
-lda $0x10
-lda @0x2000
-lda #0x3000
-lda &0x4000
+lda $10
+lda @2000
+lda #3000
+lda &4000
 inx
 ```
 
