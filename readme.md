@@ -273,7 +273,6 @@ Debugging involved:
 - Star power distribution layout
 - Extensive decoupling capacitors
 - Signal integrity stabilization
-- Partial control-path rebuild
 
 System runs reliably at approximately ~1 MHz.  
 Estimated current draw: ~1.2–1.6A under load.
