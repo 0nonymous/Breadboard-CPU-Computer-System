@@ -19,7 +19,7 @@ The system includes:
 - Custom Python two-pass assembler and ROM flashing pipeline
 - Working assembly programs including Snake
 
-This is the third architectural iteration. Earlier versions exposed architectural limitations. The current version runs reliably at approximately ~1 MHz.
+This is the third architectural iteration. Earlier versions exposed architectural limitations. The current version runs reliably at approximately ~0.25 MHz.
 
 ---
 
